@@ -1,6 +1,9 @@
 # Healthcare AI Assistant
-![Chat UI](frontend\chat-ui.png)
-![Admin Dashboard](frontend\admin-ui.png)
+![Chat UI](frontend/chat-ui.png)
+![Admin Dashboard](frontend/admin-ui.png)
+
+---
+
 A RAG-based healthcare AI assistant that answers questions from internal clinical, operational, and compliance documents. Built with hybrid search, multi-provider LLM support, and streaming responses.
 
 ---
