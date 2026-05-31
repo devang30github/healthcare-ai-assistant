@@ -1,5 +1,6 @@
 # Healthcare AI Assistant
-
+![Chat UI](https://drive.google.com/file/d/1QpnP79VFPpOGQISb1-Ql3dWnX0lM2J_x/view?usp=sharing)
+![Admin Dashboard](https://drive.google.com/file/d/1wB25_dxBU3j70QSiYH_NCNFDhq7l9lVh/view?usp=sharing)
 A RAG-based healthcare AI assistant that answers questions from internal clinical, operational, and compliance documents. Built with hybrid search, multi-provider LLM support, and streaming responses.
 
 ---
@@ -81,7 +82,7 @@ healthcare-ai-assistant/
 ### 1. Clone and create environment
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/devang30github/healthcare-ai-assistant
 cd healthcare-ai-assistant
 python -m venv .venv
 .venv\Scripts\activate      # Windows
