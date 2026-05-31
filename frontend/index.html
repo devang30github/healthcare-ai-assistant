@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Healthcare AI Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      </div>
+      <div>
+        <span class="logo-text">Healthcare AI</span>
+        <span class="logo-sub">Assistant</span>
+      </div>
+    </div>
+    <div id="status-dot">
+      <div class="dot" id="dot"></div>
+      <span id="status-label">Checking...</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('chat')">Chat</button>
+    <button class="tab-btn" onclick="switchTab('admin')">Admin</button>
+  </div>
+
+  <div class="tab-panel active" id="chat-panel">
+
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <label>LLM Provider</label>
+        <div class="select-wrap">
+          <select id="provider-select">
+            <option value="groq">Groq (Default)</option>
+            <option value="ollama">Ollama (Local)</option>
+          </select>
+        </div>
+        <p class="hint">Groq recommended for best latency.</p>
+      </div>
+
+      <div class="sidebar-section">
+        <label>Sample Questions</label>
+        <div class="sample-list">
+          <button class="sample-q" onclick="fillQuestion(this)">What is HIPAA?</button>
+          <button class="sample-q" onclick="fillQuestion(this)">Can I get a medication refill via telehealth?</button>
+          <button class="sample-q" onclick="fillQuestion(this)">Book a cardiology appointment for Monday</button>
+          <button class="sample-q" onclick="fillQuestion(this)">How long should a patient avoid driving after discharge?</button>
+          <button class="sample-q" onclick="fillQuestion(this)">What conditions are not eligible for telehealth?</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-area">
+      <div id="messages">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <p>Ask a healthcare question</p>
+          <span>Answers grounded in your documents</span>
+        </div>
+      </div>
+
+      <div class="input-bar">
+        <textarea
+          id="question-input"
+          rows="1"
+          placeholder="Ask a healthcare question..."
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button id="send-btn" onclick="sendQuestion()" title="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="admin-panel">
+    <div class="admin-inner">
+
+      <div class="admin-card">
+        <h3>System Health</h3>
+        <p>Current status of the API and vector store.</p>
+        <div class="health-grid">
+          <div class="health-item">
+            <div class="hi-label">API Status</div>
+            <div class="hi-value" id="h-status">—</div>
+          </div>
+          <div class="health-item">
+            <div class="hi-label">Vector Store</div>
+            <div class="hi-value" id="h-vs">—</div>
+          </div>
+          <div class="health-item">
+            <div class="hi-label">Environment</div>
+            <div class="hi-value" id="h-env">—</div>
+          </div>
+          <div class="health-item">
+            <div class="hi-label">Last Checked</div>
+            <div class="hi-value" id="h-time" style="font-size:12px">—</div>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <button class="btn btn-ghost" onclick="fetchHealth()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>Upload Documents</h3>
+        <p>Upload <code style="font-family:var(--mono);font-size:12px;background:var(--gray-light);padding:1px 5px;border-radius:4px">.pdf</code>, <code style="font-family:var(--mono);font-size:12px;background:var(--gray-light);padding:1px 5px;border-radius:4px">.txt</code>, or <code style="font-family:var(--mono);font-size:12px;background:var(--gray-light);padding:1px 5px;border-radius:4px">.docx</code> files to the knowledge base. Run ingestion after uploading.</p>
+        <div id="drop-zone" onclick="document.getElementById('file-input').click()"
+          style="border:2px dashed var(--border);border-radius:var(--radius-sm);padding:24px;text-align:center;cursor:pointer;transition:all 0.15s;color:var(--text-sec);font-size:13px;"
+          ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+          ondragleave="this.style.borderColor='var(--border)'"
+          ondrop="handleDrop(event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28" style="margin-bottom:8px;opacity:0.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div>Click or drag files here</div>
+          <div style="font-size:11px;margin-top:4px;color:var(--text-ter)">.pdf, .txt, .docx supported</div>
+        </div>
+        <input type="file" id="file-input" multiple accept=".pdf,.txt,.docx" style="display:none" onchange="handleFileSelect(this.files)"/>
+        <div id="file-list" style="margin-top:10px;display:flex;flex-direction:column;gap:6px"></div>
+        <div style="margin-top:12px">
+          <button class="btn btn-primary" id="upload-btn" onclick="uploadFiles()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload Files
+          </button>
+        </div>
+        <div id="upload-result" style="margin-top:12px;font-size:13px;padding:10px 12px;border-radius:var(--radius-xs);display:none"></div>
+      </div>
+
+      <div class="admin-card">
+        <h3>Document Ingestion</h3>
+        <p>Reads all documents from the <code style="font-family:var(--mono);font-size:12px;background:var(--gray-light);padding:1px 5px;border-radius:4px">/data</code> folder, generates embeddings, and rebuilds the vector store.</p>
+        <button class="btn btn-primary" id="ingest-btn" onclick="runIngest()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Run Ingestion
+        </button>
+        <div id="ingest-result"></div>
+      </div>
+
+      <div class="admin-card">
+        <h3>Session Metrics</h3>
+        <p>Aggregated latency data from this browser session.</p>
+        <div class="metrics-row">
+          <div class="metric-box">
+            <div class="mb-val" id="m-count">0</div>
+            <div class="mb-label">Questions Asked</div>
+          </div>
+          <div class="metric-box">
+            <div class="mb-val" id="m-avg-int">—</div>
+            <div class="mb-label">Avg Intent (ms)</div>
+          </div>
+          <div class="metric-box">
+            <div class="mb-val" id="m-avg-ret">—</div>
+            <div class="mb-label">Avg Retrieval (ms)</div>
+          </div>
+          <div class="metric-box">
+            <div class="mb-val" id="m-avg-gen">—</div>
+            <div class="mb-label">Avg Generation (ms)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>Clear Vector Store</h3>
+        <p>Deletes the FAISS index, BM25 corpus, and metadata from disk. You will need to re-ingest documents after this action.</p>
+        <button class="btn btn-danger" id="clear-btn" onclick="clearDB()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          Clear Vector Store
+        </button>
+        <div id="clear-result"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
